@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferurl - URL Shortener</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="url"] {
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ferurl - URL Shortener</h1>
+
+    <div class="container">
+        <form id="urlForm">
+            <label for="longUrl">Enter your long URL:</label>
+            <input type="url" id="longUrl" name="longUrl" required placeholder="https://example.com/your/very/long/url/goes/here">
+            <button type="submit">Shorten URL</button>
+        </form>
+
+        <div id="result" class="result">
+            <p>Your shortened URL: <a id="shortUrl" href="#" target="_blank"></a></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('urlForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const longUrl = document.getElementById('longUrl').value;
+
+            try {
+                const response = await fetch('http://localhost:8080/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: longUrl })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Show the result
+                const resultDiv = document.getElementById('result');
+                const shortUrlLink = document.getElementById('shortUrl');
+
+                shortUrlLink.href = `http://localhost:8080/${data.shortCode}`;
+                shortUrlLink.textContent = `http://localhost:8080/${data.shortCode}`;
+                resultDiv.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to shorten URL. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
