@@ -2,16 +2,13 @@ package utils
 
 import (
 	"crypto/sha256"
-	"fmt"
 )
 
 const base62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 func GenerateUrlHash(url string) string {
-	encoded := EncodeToBase62(url)
-	hash := sha256.Sum256([]byte(encoded))
-
-	return fmt.Sprintf("%x", hash)
+	hash := sha256.Sum256([]byte(url))
+	return EncodeToBase62(string(hash[:]))
 }
 
 func EncodeToBase62(url string) string {
@@ -21,9 +18,8 @@ func EncodeToBase62(url string) string {
 	for _, b := range hash[:] {
 		encoded += string(base62[int(b)%62])
 	}
-	if len(encoded) > 6 {
-		encoded = encoded[:6]
+	if len(encoded) > 7 {
+		return encoded[:7]
 	}
-
 	return encoded
 }
