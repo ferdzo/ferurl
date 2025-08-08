@@ -5,7 +5,10 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
+
+var log = logrus.New()
 
 type RedisConfig struct {
 	Host     string
@@ -22,15 +25,6 @@ type DatabaseConfig struct {
 	Name     string
 }
 
-func LoadEnv() error {
-	err := godotenv.Load()
-	if err != nil {
-		return fmt.Errorf("failed to load .env file: %w", err)
-	}
-	return nil
-
-}
-
 func GetEnv(key string, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {
@@ -38,6 +32,15 @@ func GetEnv(key string, defaultValue string) string {
 	}
 	return value
 }
+
+
+func LoadDotEnv() {
+	if err := godotenv.Load(); err != nil {
+		// .env file not found, continue using environment variables
+		log.Info("No .env file found, using environment variables")
+	}
+}
+
 
 func DatabaseUrl() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", GetEnv("DB_USERNAME", "postgres"),
@@ -49,11 +52,6 @@ func RedisUrl() string {
 }
 
 func LoadRedisConfig() (RedisConfig, error) {
-	err := LoadEnv()
-	if err != nil {
-		return RedisConfig{}, err
-	}
-
 	return RedisConfig{
 		Host:     GetEnv("REDIS_HOST", "localhost"),
 		Port:     GetEnv("REDIS_PORT", "6379"),
@@ -63,11 +61,6 @@ func LoadRedisConfig() (RedisConfig, error) {
 }
 
 func LoadDbConfig() (DatabaseConfig, error) {
-	err := LoadEnv()
-	if err != nil {
-		return DatabaseConfig{}, err
-	}
-
 	return DatabaseConfig{
 		Host:     GetEnv("POSTGRES_HOST", "localhost"),
 		Port:     GetEnv("POSTGRES_PORT", "5432"),

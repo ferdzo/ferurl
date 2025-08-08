@@ -15,6 +15,7 @@ var log = logrus.New()
 
 func main() {
 	log.Info("Starting ferurl URL shortener service")
+	utils.LoadDotEnv()
 
 	redisConfig, err := utils.LoadRedisConfig()
 	if err != nil {

@@ -53,6 +53,7 @@ func NewHandler(service *Service, baseURL string) (*Handler, error) {
 
 	return &Handler{service: service, baseURL: baseURL}, nil
 }
+
 func (h *Handler) CreateShortURL(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
@@ -107,7 +108,8 @@ func (h *Handler) CreateShortURL(w http.ResponseWriter, r *http.Request) {
 		ExpiresAt: expiresAt,
 	}
 
-	if err := h.service.storeUrl(newUrl); err != nil {
+	err = h.service.storeUrl(newUrl)
+	if err != nil {
 		log.Error("Failed to store URL", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
@@ -329,7 +331,6 @@ func (s *Service) storeUrl(u db.URL) error {
 		}
 	}()
 
-	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		if err := s.database.InsertNewURL(u); err != nil {
@@ -349,10 +350,10 @@ func (s *Service) storeUrl(u db.URL) error {
 	wg.Wait()
 	close(errChan)
 
-	select {
-	case err := <-errChan:
-		return err
-	default:
-		return nil
+	for err := range errChan {
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
